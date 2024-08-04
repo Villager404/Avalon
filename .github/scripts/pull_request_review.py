@@ -80,7 +80,7 @@ def review_pull_request(repo, pull_number):
     pull_request = get_pull_request(repo, pull_number)
 
     # Check if the pull request message contains "#ollama_review"
-    if "#ollama_review" not in pull_request.get('body', ''):
+    if "#review" not in pull_request.get('body', ''):
         print("Pull request does not contain the review trigger.")
         return
 
