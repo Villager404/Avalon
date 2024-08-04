@@ -51,6 +51,6 @@ jobs:
                 python3 -m pip install --upgrade --user pip
                 pip install --user requests
 
-                python3 .github.scripts/pull_request_review.py
+                python3 .github/scripts/pull_request_review.py
               if: env.PR_BODY != ''
 
