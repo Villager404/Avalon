@@ -31,10 +31,11 @@ jobs:
             - name: Check for review trigger in PR message
               id: check_review_trigger
               run: |
-                echo "PR_BODY=$(echo '${{ steps.get_pr.outputs.data }}' | jq -r '.body')" >> $GITHUB_ENV
-                if [[ "${PR_BODY}" != *"#ollama_review"* ]]; then
-                  echo "Review trigger not found in PR message. Exiting."
-                  exit 0
+                if echo "${{ github.event.pull_request.body }}" | grep -q "#review"; then
+                  echo "contains_review_tag=true" >> $GITHUB_ENV
+                else
+                  echo "contains_review_tag=false" >> $GITHUB_ENV
+                  echo "cannot find"
                 fi
 
             - name: Run review script
@@ -42,6 +43,7 @@ jobs:
               env: 
                 GITHUB_TOKEN: ${{ secrets.GITHUB.TOKEN }}
                 GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+              if: env.contains_review_tag == 'true'
               run: |
                 echo .github/scripts/pull_request_review.py
                 echo --github_sha ${{ github.sha }}
@@ -53,5 +55,3 @@ jobs:
                 pip install --user requests
 
                 python3 .github/scripts/pull_request_review.py
-              if: env.PR_BODY != ''
-
