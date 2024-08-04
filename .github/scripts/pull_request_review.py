@@ -96,7 +96,7 @@ def review_pull_request(repo, pull_number):
 
 if __name__ == "__main__":
     repo = os.getenv('GITHUB_REPOSITORY')
-    pr_number = os.getenv('GITHUB_REF').split('/')
+    pr_number = os.getenv('GITHUB_PR_NUMBER')
     token = os.getenv('GITHUB_TOKEN')
 
     review_pull_request(repo, pr_number)
