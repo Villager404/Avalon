@@ -38,7 +38,7 @@ jobs:
                 fi
 
             - name: Run review script
-              shell: cmd
+              shell: bash
               env: 
                 GITHUB_TOKEN: ${{ secrets.GITHUB.TOKEN }}
               run: |
