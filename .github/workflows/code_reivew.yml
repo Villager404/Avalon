@@ -27,8 +27,7 @@ jobs:
                 mediaType: 'application/vnd.github.v3+json'
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
-
+                
             - name: Check for review trigger in PR message
               id: check_review_trigger
               run: |
@@ -42,6 +41,7 @@ jobs:
               shell: bash
               env: 
                 GITHUB_TOKEN: ${{ secrets.GITHUB.TOKEN }}
+                GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
               run: |
                 echo .github/scripts/pull_request_review.py
                 echo --github_sha ${{ github.sha }}
