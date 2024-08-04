@@ -27,6 +27,7 @@ jobs:
                 mediaType: 'application/vnd.github.v3+json'
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
 
             - name: Check for review trigger in PR message
               id: check_review_trigger
