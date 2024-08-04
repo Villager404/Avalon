@@ -21,21 +21,18 @@ jobs:
 
             - name: Get pull request details
               id: get_pr
-              uses: actions/github-script@v6
+              uses: octokit/request-action@v2.x
               with:
-                script: |
-                  const pr = await github.pulls.get({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    pull_number: context.payload.pull_request.number
-                  });
-                  return pr.data.body;
+                route: GET /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}
+                mediaType: 'application/vnd.github.v3+json'
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Check for review trigger in PR message
               id: check_review_trigger
               run: |
-                echo "PR_BODY=${{ steps.get_pr.outputs.result }}" >> $GITHUB_ENV
-                if [[ "${{ steps.get_pr.outputs.result }}" != *"#ollama_review"* ]]; then
+                echo "PR_BODY=$(echo '${{ steps.get_pr.outputs.data }}' | jq -r '.body')" >> $GITHUB_ENV
+                if [[ "${PR_BODY}" != *"#ollama_review"* ]]; then
                   echo "Review trigger not found in PR message. Exiting."
                   exit 0
                 fi
