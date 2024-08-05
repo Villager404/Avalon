@@ -89,10 +89,7 @@ def review_pull_request(repo, pull_number):
     for file in files:
         # Example: Add a review comment for each patch
         # Note: 'patch' contains the diff of the file changes
-        for position, line in enumerate(file['patch'].split('\n')):
-            comment_body = f'Review comment for line {position + 1}: Check this change.'
-            create_review_comment(repo, pull_number, file['sha'], file['filename'], position + 1, comment_body)
-
+        print (file['patch'])
 
 if __name__ == "__main__":
     repo = os.getenv('GITHUB_REPOSITORY')
