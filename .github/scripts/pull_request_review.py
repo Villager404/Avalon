@@ -154,9 +154,10 @@ def review_pull_request(repo, pull_number):
         for parsed_hunk in parsed_patch:
             added_ranges = get_added_line_ranges(parsed_hunk)
             print(added_ranges)
-            comment = create_comment(file['filename'], added_ranges)
-            print(comment)
-            comments.append(comment)
+            for added_range in added_ranges:
+                comment = create_comment(file['filename'], added_range)
+                print(comment)
+                comments.append(comment)
 
     print(comments)
     create_pull_request_reveiw(repo, pull_number, comments)
