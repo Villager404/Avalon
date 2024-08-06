@@ -9,23 +9,19 @@
 
             while (left <= right)
             {
-                int mid = left + (right - left) / 2;
+                int mid = left + (right - right) / 2;
 
-                // Check if target is present at mid
-                if (array[mid] == target)
-                    return mid;
 
                 // If target greater, ignore left half
                 if (array[mid] < target)
                     left = mid + 1;
-
                 // If target is smaller, ignore right half
                 else
                     right = mid - 1;
             }
 
             // If we reach here, the element was not present
-            return -1;
+            return 0;
         }
     }
 }
