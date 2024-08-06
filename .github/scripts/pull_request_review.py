@@ -1,6 +1,7 @@
 import os
 from typing import *
 import requests
+import re
 
 PATCH_CONTENTS_DELIMETER = "@@"
 
@@ -62,34 +63,100 @@ def get_pull_request_files(repo, pull_number):
     response.raise_for_status()
     return response.json()
 
-
-def create_review_comment(repo, pull_number, commit_id, path, position, body):
-    url = f'https://api.github.com/repos/{repo}/pulls/{pull_number}/comments'
+def create_pull_request_reveiw(repo, pull_number, comments):
+    url = f'https://api.github.com/repos/{repo}/pulls/{pull_number}/reviews'
     data = {
-        'commit_id': commit_id,
-        'path': path,
-        'position': position,
-        'body': body
+        'body': 'Ollama review the code.',
+        'event': 'COMMENT',
+        'comments': comments
     }
+
     response = requests.post(url, headers=get_header(), json=data)
     response.raise_for_status()
     return response.json()
 
+def create_comment(file_path, range):
+    return {
+        'path': file_path,
+        'body': 'lgtm',
+        'start_line': range[0],
+        'line': range[1],
+        'start_side': 'RIGHT',
+        'side': 'RIGHT'
+    }
+
+def parse_patch(patch):
+    hunks = re.split(r'(@@ .*? @@)', patch)
+    result = []
+
+    for i in range(1, len(hunks), 2):
+        header = hunks[i]
+        content = hunks[i + 1]
+
+        # Hunk header 분석
+        header_info = re.match(r'@@ -(\d+),(\d+) \+(\d+),(\d+) @@', header)
+        if header_info:
+            start_line1 = int(header_info.group(1))
+            count1 = int(header_info.group(2))
+            start_line2 = int(header_info.group(3))
+            count2 = int(header_info.group(4))
+
+            hunk_info = {
+                'header': header,
+                'startLine1': start_line1,
+                'count1': count1,
+                'startLine2': start_line2,
+                'count2': count2,
+                'content': content
+            }
+            result.append(hunk_info)
+
+    return result
+
+def get_added_line_ranges(hunk):
+    lines = hunk['content'].split('\n')
+    added_ranges = []
+    current_line = hunk['startLine2']
+    range_start = None
+
+    for line in lines:
+        if line.startswith('+'):
+            if range_start is None:
+                range_start = current_line
+            current_line += 1
+        elif line.startswith(' '):
+            if range_start is not None:
+                added_ranges.append((range_start, current_line - 1))
+                range_start = None
+            current_line += 1
+        elif line.startswith('-'):
+            continue
+
+    if range_start is not None:
+        added_ranges.append((range_start, current_line - 1))
+
+    return added_ranges
 
 def review_pull_request(repo, pull_number):
     pull_request = get_pull_request(repo, pull_number)
 
-    # Check if the pull request message contains "#ollama_review"
+    # Check if the pull request message contains "#review"
     if "#review" not in pull_request.get('body', ''):
         print("Pull request does not contain the review trigger.")
         return
 
     files = get_pull_request_files(repo, pull_number)
 
+    comments = []
     for file in files:
-        # Example: Add a review comment for each patch
-        # Note: 'patch' contains the diff of the file changes
         print (file['patch'])
+        parsed_patch = parse_patch(file['patch'])
+        for parsed_hunk in parsed_patch:
+            added_ranges = get_added_line_ranges(parsed_hunk)
+            comment = create_comment(file['filename'], added_ranges)
+            comments.append(comment)
+
+    create_pull_request_reveiw(repo, pull_number, comments)
 
 if __name__ == "__main__":
     repo = os.getenv('GITHUB_REPOSITORY')
