@@ -75,20 +75,18 @@ def create_pull_request_reveiw(repo, pull_number, comments):
     response.raise_for_status()
     return response.json()
 
-def create_comment(file_path, range):
+def create_comment(file_path: str, parsed_hunk):
     return {
         'path': file_path,
         'body': 'lgtm',
-        'start_line': range[0],
-        'line': range[1],
-        'start_side': 'RIGHT',
-        'side': 'RIGHT'
+        'position': parsed_hunk['last_pos']
     }
 
 def parse_patch(patch):
     hunks = re.split(r'(@@ .*? @@)', patch)
     result = []
 
+    last_pos = 0
     for i in range(1, len(hunks), 2):
         header = hunks[i]
         content = hunks[i + 1]
@@ -96,46 +94,24 @@ def parse_patch(patch):
         # Hunk header 분석
         header_info = re.match(r'@@ -(\d+),(\d+) \+(\d+),(\d+) @@', header)
         if header_info:
-            start_line1 = int(header_info.group(1))
-            count1 = int(header_info.group(2))
-            start_line2 = int(header_info.group(3))
-            count2 = int(header_info.group(4))
+            removed_start_line = int(header_info.group(1))
+            removed_line_count = int(header_info.group(2))
+            added_start_line = int(header_info.group(3))
+            added_start_count = int(header_info.group(4))
+            last_pos += len(content.split('\n'))
 
             hunk_info = {
                 'header': header,
-                'startLine1': start_line1,
-                'count1': count1,
-                'startLine2': start_line2,
-                'count2': count2,
-                'content': content
+                'removed_start_line': removed_start_line,
+                'removed_line_count': removed_line_count,
+                'added_start_line': added_start_line,
+                'added_start_count': added_start_count,
+                'content': content,
+                'last_pos': last_pos
             }
             result.append(hunk_info)
 
     return result
-
-def get_added_line_ranges(hunk):
-    lines = hunk['content'].split('\n')
-    added_ranges = []
-    current_line = hunk['startLine2']
-    range_start = None
-
-    for line in lines:
-        if line.startswith('+'):
-            if range_start is None:
-                range_start = current_line
-            current_line += 1
-        elif line.startswith(' '):
-            if range_start is not None:
-                added_ranges.append((range_start, current_line - 1))
-                range_start = None
-            current_line += 1
-        elif line.startswith('-'):
-            continue
-
-    if range_start is not None:
-        added_ranges.append((range_start, current_line - 1))
-
-    return added_ranges
 
 def review_pull_request(repo, pull_number):
     pull_request = get_pull_request(repo, pull_number)
@@ -152,12 +128,10 @@ def review_pull_request(repo, pull_number):
         print (file['patch'])
         parsed_patch = parse_patch(file['patch'])
         for parsed_hunk in parsed_patch:
-            added_ranges = get_added_line_ranges(parsed_hunk)
-            print(added_ranges)
-            for added_range in added_ranges:
-                comment = create_comment(file['filename'], added_range)
-                print(comment)
-                comments.append(comment)
+            comment = create_comment(file['filename'], parsed_hunk)
+            print(comment)
+
+            comments.append(comment)
 
     print(comments)
     create_pull_request_reveiw(repo, pull_number, comments)
