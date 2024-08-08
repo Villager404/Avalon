@@ -1,0 +1,1 @@
+curl -k -L -X POST -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ***" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/Villager404/Avalon/pulls/15/reviews -d "{\"body\":\"Ollama가 변경점을 리뷰합니다.\",\"event\":\"COMMENT\",\"comments\":[{\"path\":\"Avalon/BinarySearch.cs\",\"position\":9,\"body\":\"제발.\"}]}"
