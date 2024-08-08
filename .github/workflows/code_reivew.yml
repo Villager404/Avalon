@@ -41,12 +41,11 @@ jobs:
             - name: Run review script
               shell: bash
               env: 
-                GITHUB_TOKEN: ${{ secrets.GITHUB.TOKEN }}
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
               if: env.contains_review_tag == 'true'
               run: |
                 echo .github/scripts/pull_request_review.py
-                echo --github_sha ${{ github.sha }}
                 echo --github_sha ${{ github.sha }}
                 echo --repository ${{ github.repository }}
                 echo --pull_request_number ${{ github.event.number }}
