@@ -3,45 +3,6 @@ from typing import *
 import requests
 import re
 
-PATCH_CONTENTS_DELIMETER = "@@"
-
-class side_change_data:
-    def __init__(self, start_line: int, end_line: int):
-        self._start_line: int = start_line
-        self._end_line: int = end_line
-
-    @property
-    def start_line(self) -> int:
-        return self._start_line
-
-    @property
-    def end_line(self) -> int:
-        return self._end_line
-
-class patch_change:
-    def __init__(self, name: str, contents: str,
-                 l_data: side_change_data, r_data: side_change_data):
-        self._name: str = name
-        self._contents: str = contents
-        self._left_change_data: side_change_data = l_data
-        self._right_change_data: side_change_data = r_data
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def contents(self) -> str:
-        return self._contents
-
-    @property
-    def left_change_data(self) -> side_change_data:
-        return self._left_change_data
-
-    @property
-    def right_change_data(self) -> side_change_data:
-        return self._right_change_data
-
 def get_header():
     # Headers for authentication
     token = os.getenv('GITHUB_TOKEN')
