@@ -79,14 +79,14 @@ def create_comment(file_path: str, parsed_hunk):
     return {
         'path': file_path,
         'body': 'lgtm',
-        'position': parsed_hunk['last_pos']
+        'position': parsed_hunk['num_lines'] - 1
     }
 
 def parse_patch(patch):
     hunks = re.split(r'(@@ .*? @@)', patch)
     result = []
 
-    last_pos = 0
+    num_lines = 0
     for i in range(1, len(hunks), 2):
         header = hunks[i]
         content = hunks[i + 1]
@@ -101,7 +101,7 @@ def parse_patch(patch):
             removed_line_count = int(header_info.group(2))
             added_start_line = int(header_info.group(3))
             added_start_count = int(header_info.group(4))
-            last_pos += len(content.splitlines())
+            num_lines += len(content.splitlines())
 
             hunk_info = {
                 'header': header,
@@ -110,7 +110,7 @@ def parse_patch(patch):
                 'added_start_line': added_start_line,
                 'added_start_count': added_start_count,
                 'content': content,
-                'last_pos': last_pos
+                'num_lines': num_lines
             }
             result.append(hunk_info)
 
