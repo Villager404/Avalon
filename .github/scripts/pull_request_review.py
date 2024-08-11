@@ -1,7 +1,46 @@
 import os
-from typing import *
 import requests
 import re
+import llama_review
+
+PATCH_CONTENTS_DELIMETER = "@@"
+
+class side_change_data:
+    def __init__(self, start_line: int, end_line: int):
+        self._start_line: int = start_line
+        self._end_line: int = end_line
+
+    @property
+    def start_line(self) -> int:
+        return self._start_line
+
+    @property
+    def end_line(self) -> int:
+        return self._end_line
+
+class patch_change:
+    def __init__(self, name: str, contents: str,
+                 l_data: side_change_data, r_data: side_change_data):
+        self._name: str = name
+        self._contents: str = contents
+        self._left_change_data: side_change_data = l_data
+        self._right_change_data: side_change_data = r_data
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def contents(self) -> str:
+        return self._contents
+
+    @property
+    def left_change_data(self) -> side_change_data:
+        return self._left_change_data
+
+    @property
+    def right_change_data(self) -> side_change_data:
+        return self._right_change_data
 
 def get_header():
     # Headers for authentication
@@ -37,9 +76,11 @@ def create_pull_request_reveiw(repo, pull_number, comments):
     return response.json()
 
 def create_comment(file_path: str, parsed_hunk):
+    review = llama_review.review_code(parsed_hunk['content'])
+
     return {
         'path': file_path,
-        'body': 'lgtm',
+        'body': review,
         'position': parsed_hunk['num_lines'] - 1
     }
 
@@ -51,6 +92,9 @@ def parse_patch(patch):
     for i in range(1, len(hunks), 2):
         header = hunks[i]
         content = hunks[i + 1]
+
+        print(header)
+        print(content)
 
         # Hunk header 분석
         header_info = re.match(r'@@ -(\d+),(\d+) \+(\d+),(\d+) @@', header)
@@ -86,11 +130,15 @@ def review_pull_request(repo, pull_number):
 
     comments = []
     for file in files:
+        print (file['patch'])
         parsed_patch = parse_patch(file['patch'])
         for parsed_hunk in parsed_patch:
             comment = create_comment(file['filename'], parsed_hunk)
+            print(comment)
+
             comments.append(comment)
 
+    print(comments)
     create_pull_request_reveiw(repo, pull_number, comments)
 
 if __name__ == "__main__":
