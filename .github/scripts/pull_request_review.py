@@ -91,6 +91,9 @@ def parse_patch(patch):
         header = hunks[i]
         content = hunks[i + 1]
 
+        print(header)
+        print(content)
+
         # Hunk header 분석
         header_info = re.match(r'@@ -(\d+),(\d+) \+(\d+),(\d+) @@', header)
         if header_info:
@@ -98,7 +101,7 @@ def parse_patch(patch):
             removed_line_count = int(header_info.group(2))
             added_start_line = int(header_info.group(3))
             added_start_count = int(header_info.group(4))
-            last_pos += len(content.split('\n'))
+            last_pos += len(content.splitlines())
 
             hunk_info = {
                 'header': header,
@@ -140,7 +143,5 @@ if __name__ == "__main__":
     repo = os.getenv('GITHUB_REPOSITORY')
     pr_number = os.getenv('GITHUB_PR_NUMBER')
     token = os.getenv('GITHUB_TOKEN')
-    print(token[:3])
-    print(token[3:])
 
     review_pull_request(repo, pr_number)
