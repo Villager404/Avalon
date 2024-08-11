@@ -16,6 +16,15 @@ jobs:
             pull-requests: write
 
         steps:
+            - name: Check if runner is active
+              run: |
+                if [ -z "${RUNNER_NAME}" ]; then
+                  echo "Runner is not active."
+                  exit 1
+                else
+                  echo "Runner is active: ${RUNNER_NAME}"
+                fi
+        
             - name: Checkout repository
               uses: actions/checkout@v3
 
