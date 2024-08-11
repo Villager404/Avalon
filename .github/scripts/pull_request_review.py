@@ -52,9 +52,6 @@ def parse_patch(patch):
         header = hunks[i]
         content = hunks[i + 1]
 
-        print(header)
-        print(content)
-
         # Hunk header 분석
         header_info = re.match(r'@@ -(\d+),(\d+) \+(\d+),(\d+) @@', header)
         if header_info:
@@ -89,15 +86,11 @@ def review_pull_request(repo, pull_number):
 
     comments = []
     for file in files:
-        print (file['patch'])
         parsed_patch = parse_patch(file['patch'])
         for parsed_hunk in parsed_patch:
             comment = create_comment(file['filename'], parsed_hunk)
-            print(comment)
-
             comments.append(comment)
 
-    print(comments)
     create_pull_request_reveiw(repo, pull_number, comments)
 
 if __name__ == "__main__":
