@@ -91,6 +91,9 @@ def parse_patch(patch):
         header = hunks[i]
         content = hunks[i + 1]
 
+        print(header)
+        print(content)
+
         # Hunk header 분석
         header_info = re.match(r'@@ -(\d+),(\d+) \+(\d+),(\d+) @@', header)
         if header_info:
