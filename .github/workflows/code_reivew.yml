@@ -10,7 +10,7 @@ on:
 jobs:
     review:
         runs-on: self-hosted
-        timeout-minutes: 1  # 1분 후 타임아웃
+        timeout-minutes: 10  # 10분 후 타임아웃
 
         permissions:
             contents: read
