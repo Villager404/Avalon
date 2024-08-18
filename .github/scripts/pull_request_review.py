@@ -1,46 +1,8 @@
 import os
 import requests
 import re
+import pathlib
 import llama_review
-
-PATCH_CONTENTS_DELIMETER = "@@"
-
-class side_change_data:
-    def __init__(self, start_line: int, end_line: int):
-        self._start_line: int = start_line
-        self._end_line: int = end_line
-
-    @property
-    def start_line(self) -> int:
-        return self._start_line
-
-    @property
-    def end_line(self) -> int:
-        return self._end_line
-
-class patch_change:
-    def __init__(self, name: str, contents: str,
-                 l_data: side_change_data, r_data: side_change_data):
-        self._name: str = name
-        self._contents: str = contents
-        self._left_change_data: side_change_data = l_data
-        self._right_change_data: side_change_data = r_data
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def contents(self) -> str:
-        return self._contents
-
-    @property
-    def left_change_data(self) -> side_change_data:
-        return self._left_change_data
-
-    @property
-    def right_change_data(self) -> side_change_data:
-        return self._right_change_data
 
 def get_header():
     # Headers for authentication
@@ -63,10 +25,10 @@ def get_pull_request_files(repo, pull_number):
     response.raise_for_status()
     return response.json()
 
-def create_pull_request_reveiw(repo, pull_number, comments):
+def create_pull_request_reveiw(repo, pull_number, file_name, comments):
     url = f'https://api.github.com/repos/{repo}/pulls/{pull_number}/reviews'
     data = {
-        'body': 'Ollama review the code.',
+        'body': f'AI review the code about {file_name}.',
         'event': 'COMMENT',
         'comments': comments
     }
@@ -75,8 +37,26 @@ def create_pull_request_reveiw(repo, pull_number, comments):
     response.raise_for_status()
     return response.json()
 
-def create_comment(file_path: str, parsed_hunk):
-    review = llama_review.review_code(parsed_hunk['content'])
+def create_description_comment(file_path: str, parsed_hunk):
+    review = llama_review.review_code_for_description(parsed_hunk['content'])
+
+    return {
+        'path': file_path,
+        'body': review,
+        'position': parsed_hunk['num_lines'] - 1
+    }
+
+def create_correctness_comment(file_path: str, parsed_hunk):
+    review = llama_review.review_code_for_correctness(parsed_hunk['content'])
+
+    return {
+        'path': file_path,
+        'body': review,
+        'position': parsed_hunk['num_lines'] - 1
+    }
+
+def create_maintainability_comment(file_path: str, parsed_hunk):
+    review = llama_review.review_code_for_maintainability(parsed_hunk['content'])
 
     return {
         'path': file_path,
@@ -115,6 +95,14 @@ def parse_patch(patch):
 
     return result
 
+def is_target_language_file(file_name):
+    dot_extension = pathlib.Path(file_name).suffix
+    if (dot_extension == ".cs"  # C#
+        or dot_extension == ".cpp"  # CPP
+        or dot_extension == ".py"):  # Python
+        return True
+    return False
+
 def review_pull_request(repo, pull_number):
     pull_request = get_pull_request(repo, pull_number)
 
@@ -125,14 +113,19 @@ def review_pull_request(repo, pull_number):
 
     files = get_pull_request_files(repo, pull_number)
 
-    comments = []
-    for file in files:
-        parsed_patch = parse_patch(file['patch'])
-        for parsed_hunk in parsed_patch:
-            comment = create_comment(file['filename'], parsed_hunk)
-            comments.append(comment)
 
-    create_pull_request_reveiw(repo, pull_number, comments)
+    for file in files:
+        if not is_target_language_file(file['filename']):
+            continue
+
+        parsed_patch = parse_patch(file['patch'])
+        comments = []
+        for parsed_hunk in parsed_patch:
+            comments.append(create_description_comment(file['filename'], parsed_hunk))
+            comments.append(create_correctness_comment(file['filename'], parsed_hunk))
+            comments.append(create_maintainability_comment(file['filename'], parsed_hunk))
+
+        create_pull_request_reveiw(repo, pull_number, file['filename'], comments)
 
 if __name__ == "__main__":
     repo = os.getenv('GITHUB_REPOSITORY')
