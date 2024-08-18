@@ -50,7 +50,7 @@ def parse_json_response(response) -> str:
     return res_text
 
 def review_code(prompt: str, piece_of_code: str) -> str:
-    url = "http://localhost:11434/api/generate"
+    url = "http://host.docker.internal:11434/api/generate"
     headers = {'Content-Type': 'application/json'}
     data = {
         "model": "llama3",
