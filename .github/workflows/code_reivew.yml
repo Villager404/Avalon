@@ -3,7 +3,7 @@ name: code_review
 on:
     pull_request:
         branches:
-            - master1
+            - master
         types:
             - opened
 
