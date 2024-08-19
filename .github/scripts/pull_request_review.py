@@ -38,7 +38,7 @@ def create_pull_request_reveiw(repo, pull_number, file_name, comments):
     return response.json()
 
 def create_description_comment(file_path: str, parsed_hunk):
-    review = llama_review.review_code_for_description(parsed_hunk['content'])
+    review = llama_review.review_code_for_description(parsed_hunk['added_only_content'])
 
     return {
         'path': file_path,
@@ -47,7 +47,7 @@ def create_description_comment(file_path: str, parsed_hunk):
     }
 
 def create_correctness_comment(file_path: str, parsed_hunk):
-    review = llama_review.review_code_for_correctness(parsed_hunk['content'])
+    review = llama_review.review_code_for_correctness(parsed_hunk['added_only_content'])
 
     return {
         'path': file_path,
@@ -56,13 +56,26 @@ def create_correctness_comment(file_path: str, parsed_hunk):
     }
 
 def create_maintainability_comment(file_path: str, parsed_hunk):
-    review = llama_review.review_code_for_maintainability(parsed_hunk['content'])
+    review = llama_review.review_code_for_maintainability(parsed_hunk['added_only_content'])
 
     return {
         'path': file_path,
         'body': review,
         'position': parsed_hunk['num_lines'] - 1
     }
+
+def extract_added_only_code(input_content: str) -> str:
+    input_lines = input_content.splitlines()
+    added_only_lines = []
+    for line in input_lines:
+        if line.startswith('-'):
+            continue
+        if line.startswith('+'):
+            added_only_lines.append(' ' + line[1:])
+        else:
+            added_only_lines.append(line)
+
+    return '\n'.join(added_only_lines)
 
 def parse_patch(patch):
     hunks = re.split(r'(@@ .*? @@)', patch)
@@ -89,6 +102,7 @@ def parse_patch(patch):
                 'added_start_line': added_start_line,
                 'added_start_count': added_start_count,
                 'content': content,
+                'added_only_content': extract_added_only_code(content),
                 'num_lines': num_lines
             }
             result.append(hunk_info)
@@ -112,7 +126,6 @@ def review_pull_request(repo, pull_number):
         return
 
     files = get_pull_request_files(repo, pull_number)
-
 
     for file in files:
         if not is_target_language_file(file['filename']):
