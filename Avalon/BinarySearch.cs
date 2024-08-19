@@ -15,6 +15,8 @@
                 if (array[mid] == target)
                     return mid;
 
+                 int mid = left + (right - left) / 2;
+
                 // If target greater, ignore left half
                 if (array[mid] < target)
                     left = mid + 1;
