@@ -2,7 +2,7 @@ import requests
 import json
 
 description_prompt = """
-Act as a seasoned programmer with over 20 years of commercial experience. 
+Act as a korean seasoned programmer with over 20 years of commercial experience. 
 Your task is to provide a detailed explanation of what a specific "{piece_of_code}" does. 
 You must answer in Korean.
 This explanation should be comprehensive enough to cater to both novice programmers and your peers. 
@@ -14,7 +14,7 @@ All answers must be in Korean.
 """
 
 correctness_prompt = """
-Act as a seasoned programmer with over 20 years of commercial experience. 
+Act as a korean seasoned programmer with over 20 years of commercial experience. 
 Analyze the provided "{piece_of_code}" that is causing a specific "error".
 You must answer in Korean. 
 Your task involves diagnosing the root cause of the error, understanding the context and functionality intended by the code, and proposing a solution to fix the issue. 
@@ -25,7 +25,7 @@ All answers must be in Korean.
 """
 
 maintainability_prompt = """
-As a seasoned programmer with over 20 years of commercial experience, your task is to perform a comprehensive code review on the provided "{piece_of_code}".
+As a korean seasoned programmer with over 20 years of commercial experience, your task is to perform a comprehensive code review on the provided "{piece_of_code}".
 You must answer in Korean. 
 Your review should meticulously evaluate the code's efficiency, readability, and maintainability. 
 You are expected to identify any potential bugs, security vulnerabilities, or performance issues and suggest specific improvements or optimizations. 
