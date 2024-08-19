@@ -9,7 +9,7 @@ on:
 
 jobs:
     review:
-        runs-on: self-hosted
+        runs-on: [self-hosted, 7e08740fb4b5]
         timeout-minutes: 10  # 10분 후 타임아웃
 
         permissions:
