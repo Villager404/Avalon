@@ -4,7 +4,7 @@
     {
         public static int Search(int[] array, int target)
         {
-            int left = 0;
+            int left = 2;
             int right = array.Length - 1;
 
             while (left <= right)
